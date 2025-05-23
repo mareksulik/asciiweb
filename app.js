@@ -1,7 +1,9 @@
-import { frames } from './frames.js';
+import { frames as framesAscii } from './frames.js';
+import { frames as framesUnicode } from './frames_unicode.js';
 
 const ascii = document.getElementById('ascii');
-const sel   = document.getElementById('palette');
+const selPalette = document.getElementById('palette');
+const selStyle = document.getElementById('style');
 const COLS  = 100;        // šírka obrázka v znakoch
 const FPS   = 12;
 
@@ -25,20 +27,37 @@ const PALETTES = {
 
 /* dropdown */
 Object.keys(PALETTES).forEach(p=>{
-  sel.insertAdjacentHTML('beforeend',`<option>${p}</option>`);
+  selPalette.insertAdjacentHTML('beforeend',`<option>${p}</option>`);
 });
-sel.value='atlas';
 
 /* helpers */
 const hex2rgb = h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
 const lerp=(a,b,t)=>a+(b-a)*t;
 
+/* náhodný výber štýlu a palety pri načítaní */
+const paletteNames = Object.keys(PALETTES);
+const randomPalette = paletteNames[Math.floor(Math.random() * paletteNames.length)];
+const useUnicode = Math.random() < 0.5; // 50% šanca pre každý štýl
+
+selPalette.value = randomPalette;
+selStyle.value = useUnicode ? 'unicode' : 'ascii';
+
 /* aktívna paleta */
-let stops    = PALETTES[sel.value];
+let frames = useUnicode ? framesUnicode : framesAscii;
+let stops = PALETTES[selPalette.value];
 let rgbStops = stops.map(hex2rgb);
-sel.addEventListener('change',()=>{
-  stops    = PALETTES[sel.value];
+
+// Event listenery pre zmenu štýlu a palety
+selPalette.addEventListener('change',()=>{
+  stops = PALETTES[selPalette.value];
   rgbStops = stops.map(hex2rgb);
+});
+
+selStyle.addEventListener('change',()=>{
+  frames = selStyle.value === 'ascii' ? framesAscii : framesUnicode;
+  // Resetovanie animácie pri zmene štýlu
+  idx = 0;
+  phase = 0;
 });
 
 /* farba podľa stĺpca+fázy */
