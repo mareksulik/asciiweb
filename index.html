@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Marek Šulik</title>
 
   <style>
@@ -11,11 +12,13 @@
       font-family:"JetBrains Mono","Fira Code",monospace;
     }
     pre#ascii{
-      white-space:pre;                    /* zachová presný raster */
-      line-height:1.05;
-      font-size:14px;
+      white-space:pre;                    
+      line-height:1;
+      font-size:11px;
       user-select:none;
       margin:32px;
+      max-width:700px;
+      overflow-x:auto;
     }
     #controls{
       position:fixed;
@@ -23,6 +26,7 @@
       font-size:14px;
       display: flex;
       gap: 10px;
+      z-index:100;
     }
     #controls select{
       padding:4px 8px;
@@ -33,10 +37,11 @@
       font-family:"JetBrains Mono","Fira Code",monospace;
       margin:32px;
       line-height:1.5;
-      max-width:800px;
+      max-width:700px;
+      width:calc(100% - 64px);
     }
     .bio .title {
-      font-size:24px;
+      font-size:36px;
       font-weight:bold;
       margin-top:0;
       margin-bottom:20px;
@@ -55,6 +60,31 @@
     .bio p {
       margin-bottom:16px;
     }
+    
+    /* Responsive styles for mobile devices */
+    @media (max-width: 768px) {
+      pre#ascii {
+        font-size:8px;
+        margin:16px;
+      }
+      .bio {
+        margin:16px;
+        width:calc(100% - 32px);
+      }
+      .bio .title {
+        font-size:28px;
+      }
+      .bio h1 {
+        font-size:16px;
+      }
+      #controls {
+        top:8px;
+        left:8px;
+      }
+      #original-photo {
+        margin:16px;
+      }
+    }
   </style>
 
   <script type="module" src="./app.js"></script>
@@ -64,34 +94,39 @@
     <select id="style">
       <option value="ascii">ASCII</option>
       <option value="unicode">Unicode</option>
+      <option value="original">Original</option>
     </select>
     <select id="palette"></select>
   </div>
   <pre id="ascii"></pre>
+  <img id="original-photo" src="marek-sulik.jpeg" style="display:none; margin:32px; width: 620px; height:auto; object-fit:fill;">
   
   <div class="bio">
     <h1 class="title">Marek Šulik</h1>
-    <p>Marketingu a reklame sa venujem od roku 2009. Mám rád funkčný marketing založený viac na reálnych skúsenostiach a dátach a menej na dojmoch.</p>
-    
+    <p>Marketingu a reklame sa venujem od roku 2009. Verím v marketing založený na vedeckom poznaní, dátach a reálnych skúsenostiach, nie na dojmoch. Komplikované veci sa snažím vysvetľovať jednoducho - ak to nedokážem, pravdepodobne tomu dostatočne dobre nerozumiem. Aj po rokoch praxe si uvedomujem svoje limity a stále sa mám čo učiť.</p>    
     <h1>Čo momentálne robím?</h1>
     <ul>
-      <li>Som spolumajiteľom brandového štúdia Birne, ktoré pomáha značkám rásť. Tvorím pre klientov stratégie a konzultujem s nimi ich marketingové aktivity a plány.</li>
-      <li>Pôsobím na pozícii Head of Digital Marketing v slovenskej firme Isadore. Vyrábame prémiové a udržateľné cyklistické oblečenie a predávame ho do celého sveta.</li>
-      <li>Každé dva týždne publikujem newsletter o reklame a marketingu, ktorý odoberajú tisícky čitateľov a vychádza aj v Denníku N.</li>
-      <li>Som externý lektor a doktorand na Fakulte mesmediálne komunikácie UCM v Trnave.</li>
-      
+      <li>Som spolumajiteľom problem scoping štúdia SNAG a brandového štúdia Birne. Pomáham značkám identifikovať ich problémy a konzultujem s nimi ich marketingové aktivity a plány.</li>
+      <li>Pôsobím na pozícii Head of Digital Marketing v slovenskej firme Isadore. Firma vyrába prémiové a udržateľné cyklistické oblečenie a predáva ho do celého sveta.</li>
+      <li>Pravidelne publikujem newsletter Marš o reklame, marketingu a biznise. Odoberajú ho tisícky čitateľov a vychádza aj v Denníku N.</li>
+      <li>Som externý lektor a doktorant na Fakulte mesmediálne komunikácie Univerzity sv. Cyrila a Metoda v Trnave.</li>
+
     </ul>
     
     <h1>Čomu konkrétne sa venujem?</h1>
     <ul>
-      <li>marketingovej diagnostike, stratégii primárne v online prostredí</li>
-      <li>ecommerce a exportnému marketingu</li>
-      <li>analytike a business intelligence</li>
-      <li>marketingovým konzultáciám a školeniam</li>
+      <li>Marketingovej diagnostike a stratégii primárne v online prostredí</li>
+      <li>Ecommerce a exportnému marketingu</li>
+      <li>Analytike a business intelligence</li>
+      <li>Marketingovým konzultáciám a školeniam</li>
     </ul>
+
+    <h1>Chceš so mnou spolupracovať?</h1>
+    <p>V súčasnosti sa primárne venujem vyššie spomenutým projektom. Ak je to možné, tak si nájdem čas aj na iné krátkodobé konzultácie alebo školenia. Napíš mi na <a href="mailto:ahoj@mareksulik.sk">môj email</a>.</p>
     
     <h1>Kde ma ešte nájdeš?</h1>
-    <p>Aktívny som na na Twitteri, na LinkedIne, na Instragame a na Strave.</p>
+    <p>Aktívny som na na <a href="https://bsky.app/profile/mareksulik.sk">Bluesky</a>, <a href="https://twitter.com/shulo">X</a>, <a href="https://www.linkedin.com/in/sulik/">LinkedIne</a>, <a href="https://www.instagram.com/mareksulik/">Instagrame</a> alebo <a href="https://www.strava.com/athletes/3492382">Strave</a>.</p>
+    <p><a href="https://finstat.sk/50464892/obchodny_register">Fakturačné údaje</a></p>
   </div>
 </body>
 </html>
