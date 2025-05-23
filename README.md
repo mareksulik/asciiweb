@@ -1,18 +1,28 @@
-# ASCII Atlas Gradient
+# Marek Šulik - Personal Website
 
-An interactive web visualization that renders and animates ASCII art gradients in the browser.
+An interactive web visualization that combines ASCII/Unicode art gradients with a personal portfolio website.
 
 ## Overview
 
-ASCII Atlas Gradient transforms your browser into a canvas for beautiful character-based visualizations. The project uses plain JavaScript to generate animated ASCII art that creates gradient-like visual effects using standard text characters.
+This project transforms a standard personal website into an artistic canvas, featuring beautiful character-based visualizations of Marek Šulik's portrait. Using plain JavaScript, the site renders animated ASCII/Unicode art with colorful gradient effects while providing professional information.
 
 ## Features
 
-- Lightweight implementation with pure HTML, CSS, and JavaScript
-- Frame-based ASCII animation system
-- Responsive design that adapts to the browser window
-- Monospaced font rendering for precise character alignment
-- Customizable gradients and character sets
+1. Three visualization modes:
+   - ASCII art animation with color gradients
+   - Unicode art animation with color gradients
+   - Original photograph display
+
+2. Interactive controls:
+   - Style selector (ASCII/Unicode/Original)
+   - Color palette selector with multiple gradient options
+
+3. Technical features:
+   - Lightweight implementation with pure HTML, CSS, and JavaScript
+   - Frame-based character animation system
+   - Responsive design for all device sizes
+   - Monospaced font rendering for precise character alignment
+   - Random style and palette selection on page load
 
 ## Getting Started
 
