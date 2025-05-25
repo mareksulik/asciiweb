@@ -42,9 +42,9 @@ const randomPalette = paletteNames[Math.floor(Math.random() * paletteNames.lengt
 const randomStyle = Math.random();
 let initialStyle;
 
-if (randomStyle < 0.33) {
+if (randomStyle < 0.4) {
   initialStyle = 'ascii';
-} else if (randomStyle < 0.66) {
+} else if (randomStyle < 0.8) {
   initialStyle = 'unicode';
 } else {
   initialStyle = 'original';
