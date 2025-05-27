@@ -32,6 +32,31 @@ Object.keys(PALETTES).forEach(p=>{
 const hex2rgb = h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
 const lerp=(a,b,t)=>a+(b-a)*t;
 
+// Cache pre farby - predpočítame všetky možné farby
+let colorCache = new Map();
+
+// Funkcia na pregenenerovanie cache pri zmene palety s jemnejšími krokmi
+function generateColorCache() {
+  colorCache.clear();
+  // Používame jemnejšie kroky pre plynulejšie prechody
+  const steps = COLS * 2; // Dvojnásobne viac krokov pre plynulejšie prechody
+  
+  for (let phase = 0; phase < steps; phase++) {
+    for (let x = 0; x < COLS; x++) {
+      const pos = (x + phase * 0.5) % COLS; // Jemnejší posun
+      const f = pos / (COLS - 1);
+      const segCnt = rgbStops.length - 1;
+      const s = f * segCnt;
+      const i = Math.floor(s);
+      const t = s - i;
+      const c0 = rgbStops[i];
+      const c1 = rgbStops[(i + 1) % rgbStops.length];
+      const rgb = c0.map((v, k) => Math.round(lerp(v, c1[k], t)));
+      colorCache.set(`${x}-${phase}`, `rgb(${rgb.join(',')})`);
+    }
+  }
+}
+
 // Získanie referencie na obrázok
 const originalPhoto = document.getElementById('original-photo');
 
@@ -65,10 +90,14 @@ let frames = initialStyle === 'unicode' ? framesUnicode : framesAscii;
 let stops = PALETTES[selPalette.value];
 let rgbStops = stops.map(hex2rgb);
 
+// Vygeneruj počiatočnú cache
+generateColorCache();
+
 // Event listenery pre zmenu štýlu a palety
 selPalette.addEventListener('change',()=>{
   stops = PALETTES[selPalette.value];
   rgbStops = stops.map(hex2rgb);
+  generateColorCache(); // Regeneruj cache pri zmene palety
 });
 
 selStyle.addEventListener('change',()=>{
@@ -92,35 +121,63 @@ selStyle.addEventListener('change',()=>{
   }
 });
 
-/* farba podľa stĺpca+fázy */
-const colorAt=(x,phase)=>{
-  const pos=(x+phase)%COLS, f=pos/(COLS-1);
-  const segCnt=rgbStops.length-1, s=f*segCnt, i=Math.floor(s), t=s-i;
-  const c0=rgbStops[i], c1=rgbStops[(i+1)%rgbStops.length];
-  const rgb=c0.map((v,k)=>Math.round(lerp(v,c1[k],t)));
-  return`rgb(${rgb})`;
+/* optimalizovaná farba podľa cache s interpoláciou */
+const colorAt = (x, phase) => {
+  const cacheKey = `${x}-${Math.floor(phase)}`;
+  return colorCache.get(cacheKey) || colorCache.get(`${x}-0`);
 };
 
-/* render jediného frame-u */
-function render(frame,phase){
-  return frame.split('\\n').map(line=>{
-    let row='';
-    for(let x=0;x<line.length;x++){
-      const ch=line[x]===' '?'&nbsp;':line[x];
-      row += `<span style="color:${colorAt(x,phase)}">${ch}</span>`;
+/* optimalizovaný render s DocumentFragment */
+function render(frame, phase) {
+  const lines = frame.split('\\n');
+  const fragment = document.createDocumentFragment();
+  let globalX = 0; // Globálna pozícia naprieč všetkými riadkami
+  
+  lines.forEach((line, lineIndex) => {
+    if (lineIndex > 0) {
+      fragment.appendChild(document.createElement('br'));
     }
-    return row;
-  }).join('<br>');
+    
+    for (let x = 0; x < line.length; x++) {
+      const ch = line[x];
+      const span = document.createElement('span');
+      
+      if (ch === ' ') {
+        span.innerHTML = '&nbsp;';
+      } else {
+        span.textContent = ch;
+      }
+      
+      // Použiť globálnu pozíciu pre farbu
+      span.style.color = colorAt(globalX % COLS, phase);
+      fragment.appendChild(span);
+      globalX++;
+    }
+  });
+  
+  return fragment;
 }
 
-/* animácia */
-let idx=0,phase=0;
-(function loop(){
-  // Generuj animáciu len ak nie je vybraný originálny obrázok
-  if (selStyle.value !== 'original') {
-    ascii.innerHTML = render(frames[idx],phase);
-    idx = (idx+1)%frames.length;
-    phase = (phase+1)%COLS;
+/* animácia s jemnejším phase krokom ale rovnakým FPS */
+let idx = 0, phase = 0;
+let lastTime = 0;
+const frameInterval = 1000 / FPS;
+const phaseStep = 0.5; // Jemnejší krok pre plynulejší gradient
+
+function loop(currentTime) {
+  if (currentTime - lastTime >= frameInterval) {
+    if (selStyle.value !== 'original') {
+      // Vyčisť obsah a pridaj nový fragment
+      ascii.innerHTML = '';
+      ascii.appendChild(render(frames[idx], phase));
+      
+      idx = (idx + 1) % frames.length;
+      phase = (phase + phaseStep) % (COLS * 2); // Cyklus cez všetky cache kroky
+    }
+    lastTime = currentTime;
   }
-  setTimeout(loop,1000/FPS);
-})();
+  
+  requestAnimationFrame(loop);
+}
+
+requestAnimationFrame(loop);
