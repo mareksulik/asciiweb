@@ -1,11 +1,31 @@
-import { frames as framesAscii } from './frames.js';
-import { frames as framesUnicode } from './frames_unicode.js';
+// Lazy loading pre lepší výkon
+let framesAscii = [];
+let framesUnicode = [];
+
+// Asynchrónne načítanie rámcov
+async function loadFrames() {
+  const [asciiModule, unicodeModule] = await Promise.all([
+    import('./frames.js'),
+    import('./frames_unicode.js')
+  ]);
+  
+  framesAscii = asciiModule.frames;
+  framesUnicode = unicodeModule.frames;
+  
+  // Po načítaní rámcov inicializuj animáciu
+  initializeAnimation();
+}
 
 const ascii = document.getElementById('ascii');
+const canvas = document.getElementById('ascii-canvas');
+const ctx = canvas.getContext('2d');
 const selPalette = document.getElementById('palette');
 const selStyle = document.getElementById('style');
 const COLS  = 100;        // šírka obrázka v znakoch
-const FPS   = 12;
+
+// Jednotné FPS pre všetky prehliadače
+const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+const FPS = 15;  // Vyššie FPS
 
 /* ===== palety ===== */
 const PALETTES = {
@@ -35,15 +55,14 @@ const lerp=(a,b,t)=>a+(b-a)*t;
 // Cache pre farby - predpočítame všetky možné farby
 let colorCache = new Map();
 
-// Funkcia na pregenenerovanie cache pri zmene palety s jemnejšími krokmi
+// Optimalizovaný cache s predpočítanými CSS stringmi
 function generateColorCache() {
   colorCache.clear();
-  // Používame jemnejšie kroky pre plynulejšie prechody
-  const steps = COLS * 2; // Dvojnásobne viac krokov pre plynulejšie prechody
+  const steps = COLS; // Zmenšené kroky pre lepší výkon
   
   for (let phase = 0; phase < steps; phase++) {
     for (let x = 0; x < COLS; x++) {
-      const pos = (x + phase * 0.5) % COLS; // Jemnejší posun
+      const pos = (x + phase * 0.8) % COLS;
       const f = pos / (COLS - 1);
       const segCnt = rgbStops.length - 1;
       const s = f * segCnt;
@@ -86,18 +105,37 @@ if (initialStyle === 'original') {
 }
 
 /* aktívna paleta */
-let frames = initialStyle === 'unicode' ? framesUnicode : framesAscii;
+let frames = [];
 let stops = PALETTES[selPalette.value];
 let rgbStops = stops.map(hex2rgb);
 
-// Vygeneruj počiatočnú cache
-generateColorCache();
+function initializeAnimation() {
+  frames = initialStyle === 'unicode' ? framesUnicode : framesAscii;
+  
+  // Vygeneruj počiatočnú cache
+  generateColorCache();
+  
+  // Inicializuj virtuálny DOM
+  initializeVirtualDOM();
+  
+  // Používaj iba DOM rendering pre všetky prehliadače
+  ascii.style.display = 'block';
+  canvas.style.display = 'none';
+  
+  // Spusti animáciu
+  requestAnimationFrame(loop);
+}
 
 // Event listenery pre zmenu štýlu a palety
+// Optimalizovaná zmena palety s debounce
+let paletteChangeTimeout;
 selPalette.addEventListener('change',()=>{
-  stops = PALETTES[selPalette.value];
-  rgbStops = stops.map(hex2rgb);
-  generateColorCache(); // Regeneruj cache pri zmene palety
+  clearTimeout(paletteChangeTimeout);
+  paletteChangeTimeout = setTimeout(() => {
+    stops = PALETTES[selPalette.value];
+    rgbStops = stops.map(hex2rgb);
+    generateColorCache();
+  }, 50); // 50ms debounce pre plynulejšiu zmenu
 });
 
 selStyle.addEventListener('change',()=>{
@@ -106,15 +144,23 @@ selStyle.addEventListener('change',()=>{
   // Zobrazenie/skrytie elementov podľa vybraného štýlu
   if (selectedStyle === 'original') {
     ascii.style.display = 'none';
+    canvas.style.display = 'none';
     originalPhoto.style.display = 'block';
     selPalette.disabled = true;
   } else {
-    ascii.style.display = 'block';
     originalPhoto.style.display = 'none';
     selPalette.disabled = false;
     
+    ascii.style.display = 'block';
+    canvas.style.display = 'none';
+    
     // Nastavenie správnych rámcov pre ASCII alebo Unicode
     frames = selectedStyle === 'ascii' ? framesAscii : framesUnicode;
+    
+    // Re-inicializuj virtuálny DOM pre nový štýl
+    isInitialized = false;
+    initializeVirtualDOM();
+    
     // Resetovanie animácie pri zmene štýlu
     idx = 0;
     phase = 0;
@@ -127,11 +173,75 @@ const colorAt = (x, phase) => {
   return colorCache.get(cacheKey) || colorCache.get(`${x}-0`);
 };
 
-/* optimalizovaný render s DocumentFragment */
-function render(frame, phase) {
-  const lines = frame.split('\\n');
+// Canvas rendering pre Safari
+let canvasInitialized = false;
+
+function initCanvas() {
+  if (!canvasInitialized && isSafari && frames.length > 0) {
+    console.log('Initializing canvas for Safari');
+    
+    // Problém: \\n v stringoch nie sú skutočné newlines!
+    const testFrame = frames[0].replace(/\\n/g, '\n');
+    const lines = testFrame.split('\n');
+    const lineCount = lines.length;
+    const maxLineLength = Math.max(...lines.map(line => line.length));
+    
+    console.log(`Lines count: ${lineCount}, max length: ${maxLineLength}`);
+    console.log('First few lines:', lines.slice(0, 3));
+    
+    const charWidth = 6.6;
+    const lineHeight = 12;
+    
+    canvas.width = Math.max(maxLineLength * charWidth, 600);
+    canvas.height = Math.max(lineCount * lineHeight, 400);
+    
+    canvas.style.margin = '32px';
+    canvas.style.maxWidth = '700px';
+    canvas.style.border = '1px solid red'; // Debug border
+    
+    ctx.font = '11px JetBrains Mono, Fira Code, monospace';
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = '#000000';
+    
+    console.log(`Canvas initialized: ${canvas.width}x${canvas.height}`);
+    canvasInitialized = true;
+  }
+}
+
+// Moderný rendering prístup s virtuálnym DOM
+let virtualElements = [];
+let isInitialized = false;
+
+function initializeVirtualDOM() {
+  if (!isInitialized && frames.length > 0) {
+    const lines = frames[0].split('\\n');
+    let totalChars = 0;
+    
+    lines.forEach(line => totalChars += line.length);
+    
+    // Predkompiluj DOM elementy
+    virtualElements = [];
+    for (let i = 0; i < totalChars; i++) {
+      const span = document.createElement('span');
+      virtualElements.push(span);
+    }
+    
+    isInitialized = true;
+  }
+}
+
+function render(frameIdx, phase) {
+  if (!isInitialized) {
+    initializeVirtualDOM();
+    return;
+  }
+  
+  const lines = frames[frameIdx].split('\\n');
+  let spanIndex = 0;
+  let globalX = 0;
+  
+  // Vyčisti a priprav fragment
   const fragment = document.createDocumentFragment();
-  let globalX = 0; // Globálna pozícia naprieč všetkými riadkami
   
   lines.forEach((line, lineIndex) => {
     if (lineIndex > 0) {
@@ -140,39 +250,77 @@ function render(frame, phase) {
     
     for (let x = 0; x < line.length; x++) {
       const ch = line[x];
-      const span = document.createElement('span');
+      const span = virtualElements[spanIndex] || document.createElement('span');
       
+      // Optimalizované nastavenie obsahu
       if (ch === ' ') {
-        span.innerHTML = '&nbsp;';
+        span.textContent = '\u00A0'; // &nbsp; ako unicode
       } else {
         span.textContent = ch;
       }
       
-      // Použiť globálnu pozíciu pre farbu
-      span.style.color = colorAt(globalX % COLS, phase);
+      // Optimalizované nastavenie farby
+      span.style.color = colorAt(globalX % COLS, Math.floor(phase));
+      
       fragment.appendChild(span);
+      spanIndex++;
       globalX++;
     }
   });
   
-  return fragment;
+  // Jeden atomic DOM update
+  ascii.innerHTML = '';
+  ascii.appendChild(fragment);
 }
 
-/* animácia s jemnejším phase krokom ale rovnakým FPS */
+function renderCanvas(frameIdx, phase) {
+  if (!canvasInitialized || !frames.length) {
+    if (frames.length > 0) {
+      initCanvas();
+    }
+    return;
+  }
+  
+  // Fix: nahraď \\n skutočnými newlines
+  const frame = frames[frameIdx].replace(/\\n/g, '\n');
+  const lines = frame.split('\n');
+  const lineHeight = 12;
+  const charWidth = 6.6;
+  
+  // Vyčisti canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  let globalX = 0;
+  
+  lines.forEach((line, lineIndex) => {
+    const y = lineIndex * lineHeight;
+    
+    for (let x = 0; x < line.length; x++) {
+      const ch = line[x];
+      if (ch !== ' ') {
+        const color = colorAt(globalX % COLS, Math.floor(phase));
+        ctx.fillStyle = color;
+        ctx.fillText(ch, x * charWidth, y);
+      }
+      globalX++;
+    }
+  });
+}
+
+
+/* vysokovýkonná animácia pre všetky prehliadače */
 let idx = 0, phase = 0;
 let lastTime = 0;
 const frameInterval = 1000 / FPS;
-const phaseStep = 0.5; // Jemnejší krok pre plynulejší gradient
+const phaseStep = 0.3; // Obnovené farebné prechody
 
 function loop(currentTime) {
   if (currentTime - lastTime >= frameInterval) {
-    if (selStyle.value !== 'original') {
-      // Vyčisť obsah a pridaj nový fragment
-      ascii.innerHTML = '';
-      ascii.appendChild(render(frames[idx], phase));
+    if (selStyle.value !== 'original' && frames.length > 0) {
+      render(idx, phase);
       
       idx = (idx + 1) % frames.length;
-      phase = (phase + phaseStep) % (COLS * 2); // Cyklus cez všetky cache kroky
+      phase = (phase + phaseStep) % COLS;
     }
     lastTime = currentTime;
   }
@@ -180,4 +328,5 @@ function loop(currentTime) {
   requestAnimationFrame(loop);
 }
 
-requestAnimationFrame(loop);
+// Spusti načítanie rámcov
+loadFrames();
