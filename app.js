@@ -1,4 +1,4 @@
-// Lazy loading pre lepší výkon
+zmen// Lazy loading pre lepší výkon
 let framesAscii = [];
 let framesUnicode = [];
 
