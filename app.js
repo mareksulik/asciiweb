@@ -1,4 +1,4 @@
-zmen// Lazy loading pre lepší výkon
+// Lazy loading pre lepší výkon
 let framesAscii = [];
 let framesUnicode = [];
 
@@ -199,7 +199,7 @@ function initCanvas() {
     canvas.style.maxWidth = '700px';
     canvas.style.border = '1px solid red'; // Debug border
     
-    ctx.font = '11px JetBrains Mono, Fira Code, monospace';
+    ctx.font = '300 11px "Cascadia Code", monospace';
     ctx.textBaseline = 'top';
     ctx.fillStyle = '#000000';
     
