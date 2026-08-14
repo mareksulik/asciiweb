@@ -139,12 +139,12 @@
       <div id="bio-sk">
         <h1 class="title">Marek Šulik</h1>
         <p class="deco">░░░░▒▒▒▒▓▓▓▓░░░░▒▒▒▒▓▓▓▓</p>
-        <p>Marketingu a reklame sa venujem už sedemnásty rok – od roku 2009. Verím v marketing založený na vedeckom poznaní, potrebách zákazníkov, relevantných dátach a dlhoročnom know-how, nie na dojmoch. Komplikované veci sa snažím vysvetľovať jednoducho. Ak to nedokážem, pravdepodobne tomu dostatočne dobre nerozumiem. Aj po rokoch praxe si uvedomujem svoje limity a stále sa mám čo učiť.</p>
+        <p>Marketingu a reklame sa venujem už <span data-ord-sk="marketing">osemnásty</span> rok – od roku 2009. Verím v marketing založený na vedeckom poznaní, potrebách zákazníkov, relevantných dátach a dlhoročnom know-how, nie na dojmoch. Komplikované veci sa snažím vysvetľovať jednoducho. Ak to nedokážem, pravdepodobne tomu dostatočne dobre nerozumiem. Aj po rokoch praxe si uvedomujem svoje limity a stále sa mám čo učiť.</p>
 
         <h1>Čo momentálne robím?</h1>
         <ol>
           <li>Som spolumajiteľom marketingového štúdia <a href="https://birne.sk">Birne</a>. Pomáham značkám identifikovať ich problémy a konzultujem s nimi ich marketingové aktivity a plány.</li>
-          <li>Už piaty rok publikujem newsletter <a href="https://mars.mareksulik.sk">Marš</a> o reklame, marketingu a biznise. Odoberajú ho tisícky čitateľov a vychádza aj <a href="https://e.dennikn.sk/tema/mars-newsletter">v Denníku N</a>.</li>
+          <li>Už <span data-ord-sk="newsletter">šiesty</span> rok publikujem newsletter <a href="https://mars.mareksulik.sk">Marš</a> o reklame, marketingu a biznise. Odoberajú ho tisícky čitateľov a vychádza aj <a href="https://e.dennikn.sk/tema/mars-newsletter">v Denníku N</a>.</li>
           <li>Som doktorand na Fakulte masmediálnej komunikácie Univerzity sv. Cyrila a Metoda v Trnave, kde zároveň pôsobím ako externý lektor a vediem predmet o marketingu a reklame. Moju publikačnú činnosť nájdeš na <a href="https://orcid.org/0009-0009-6677-6497">ORCID</a>.</li>
         </ol>
 
@@ -178,12 +178,12 @@
       <div id="bio-en" hidden>
         <h1 class="title">Marek Šulik</h1>
         <p class="deco">░░░░▒▒▒▒▓▓▓▓░░░░▒▒▒▒▓▓▓▓</p>
-        <p>I have been working in marketing and advertising since 2009 – my seventeenth year now. I believe in marketing grounded in scientific knowledge, customer needs, relevant data and long-term know-how, not in impressions. I try to explain complicated things simply. If I can’t, I probably don’t understand them well enough. Even after years of practice, I am aware of my limits and still have plenty to learn.</p>
+        <p>I have been working in marketing and advertising since 2009 – my <span data-ord-en="marketing">eighteenth</span> year now. I believe in marketing grounded in scientific knowledge, customer needs, relevant data and long-term know-how, not in impressions. I try to explain complicated things simply. If I can’t, I probably don’t understand them well enough. Even after years of practice, I am aware of my limits and still have plenty to learn.</p>
 
         <h1>What I’m working on</h1>
         <ol>
           <li>I’m a co-owner of <a href="https://birne.sk">Birne</a>, a marketing studio. I help brands identify their problems and consult on their marketing activities and plans.</li>
-          <li>For the fifth year, I publish <a href="https://mars.mareksulik.sk">Marš</a>, a newsletter about advertising, marketing and business. It is read by thousands of subscribers and also published <a href="https://e.dennikn.sk/tema/mars-newsletter">by Denník N</a>.</li>
+          <li>For the <span data-ord-en="newsletter">sixth</span> year, I publish <a href="https://mars.mareksulik.sk">Marš</a>, a newsletter about advertising, marketing and business. It is read by thousands of subscribers and also published <a href="https://e.dennikn.sk/tema/mars-newsletter">by Denník N</a>.</li>
           <li>I’m a doctoral researcher at the Faculty of Mass Media Communication, University of Ss. Cyril and Methodius in Trnava, where I also teach a course on marketing and advertising as an external lecturer. My publication record is on <a href="https://orcid.org/0009-0009-6677-6497">ORCID</a>.</li>
         </ol>
 
@@ -605,6 +605,48 @@ document.getElementById("palette-btn").addEventListener("click", nextPalette);
 document.addEventListener("keydown", e => {
   if (e.key === "p") paused = !paused;
 });
+
+/* ============================================================
+   Roky sa dopočítavajú, aby text nezostarol. Prvý kalendárny rok
+   sa počíta ako prvý, takže 2009 → v roku 2026 je to 18. rok.
+   V HTML sú predvyplnené hodnoty pre prípad vypnutého JS.
+   ============================================================ */
+const SINCE = { marketing: 2009, newsletter: 2021 };
+
+const SK_ONES  = ["","prvý","druhý","tretí","štvrtý","piaty","šiesty","siedmy","ôsmy","deviaty"];
+const SK_TEENS = ["desiaty","jedenásty","dvanásty","trinásty","štrnásty","pätnásty","šestnásty","sedemnásty","osemnásty","devätnásty"];
+const SK_TENS  = ["","","dvadsiaty","tridsiaty","štyridsiaty","päťdesiaty","šesťdesiaty"];
+function ordSk(n){
+  if (n < 10) return SK_ONES[n];
+  if (n < 20) return SK_TEENS[n-10];
+  const t = Math.floor(n/10), u = n % 10;
+  if (!SK_TENS[t]) return n + ".";
+  return SK_TENS[t] + (u ? " " + SK_ONES[u] : "");
+}
+
+const EN_ONES  = ["","first","second","third","fourth","fifth","sixth","seventh","eighth","ninth"];
+const EN_TEENS = ["tenth","eleventh","twelfth","thirteenth","fourteenth","fifteenth","sixteenth","seventeenth","eighteenth","nineteenth"];
+const EN_TENS  = ["","","twentieth","thirtieth","fortieth","fiftieth","sixtieth"];
+const EN_TENS_P= ["","","twenty","thirty","forty","fifty","sixty"];
+function ordEn(n){
+  if (n < 10) return EN_ONES[n];
+  if (n < 20) return EN_TEENS[n-10];
+  const t = Math.floor(n/10), u = n % 10;
+  if (!EN_TENS[t]) return n + "th";
+  return u ? EN_TENS_P[t] + "-" + EN_ONES[u] : EN_TENS[t];
+}
+
+function fillYears(){
+  const year = new Date().getFullYear();
+  const nth = key => year - SINCE[key] + 1;
+  document.querySelectorAll("[data-ord-sk]").forEach(el => {
+    el.textContent = ordSk(nth(el.dataset.ordSk));
+  });
+  document.querySelectorAll("[data-ord-en]").forEach(el => {
+    el.textContent = ordEn(nth(el.dataset.ordEn));
+  });
+}
+fillYears();
 
 /* ===== jazyk ===== */
 const bioSk = document.getElementById("bio-sk");
