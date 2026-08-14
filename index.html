@@ -266,7 +266,7 @@ const PALETTES = [
     back:["#BFB49F","#CBC1AF"],
     flash:"#8A6A52",
     paper:"#F7F3EB",
-    page:{ text:"#4A4238", link:"#8A6A52", muted:"#9C9282" },
+    page:{ text:"#4A4238", link:"#82634C", muted:"#9C9282" },
     invert:false },
   { name:"Slate",
     bg:["#4A5266","#525A6E","#434B5E","#4A5266"],
@@ -276,6 +276,33 @@ const PALETTES = [
     paper:"#EFF0F2", wash:0.93,
     page:{ text:"#2B2F36", link:"#4C5A72", muted:"#7E848F" },
     invert:true },
+  /* petrolejová — jediná výrazná medzera v odtieňoch celej sady */
+  { name:"Petrol",
+    bg:["#123A3C","#164447","#0F3234","#123A3C"],
+    subj:["#DFF0EE","#B8DAD6","#93C0BB","#6FA39E","#548681"],
+    back:["#215A5C","#1B4C4E"],
+    flash:"#CFEDE8",
+    paper:"#E9F1F0", wash:0.93,
+    page:{ text:"#16302F", link:"#1F6360", muted:"#7C9391" },
+    invert:true },
+  /* Very Peri (Pantone 2022) — perlinková modrofialová */
+  { name:"Peri",
+    bg:["#9FA0D4","#A9AADB","#9497CC","#9FA0D4"],
+    subj:["#1D1B38","#302D50","#454168","#5A5680","#706C97"],
+    back:["#7D7EB8","#8B8CC4"],
+    flash:"#EFEFFA",
+    paper:"#F0F0F8",
+    page:{ text:"#26243F", link:"#5150A0", muted:"#8A88A8" },
+    invert:false },
+  /* maslová žltá — výrazný trend posledných sezón */
+  { name:"Butter",
+    bg:["#EFDFA8","#F3E6B8","#E9D79A","#EFDFA8"],
+    subj:["#2B2617","#413A25","#575034","#6E6644","#867D57"],
+    back:["#C9B87E","#D6C793"],
+    flash:"#6B5A22",
+    paper:"#FAF5E4",
+    page:{ text:"#2B2617", link:"#7A6520", muted:"#9A8F6A" },
+    invert:false },
 ];
 
 const SUBJ_LEVELS = [
@@ -288,10 +315,12 @@ const BACK_LEVELS = [
 
 const canvas = document.getElementById("portrait");
 const ctx = canvas.getContext("2d");
-let paletteIdx = 0;
+/* pri každom načítaní iná paleta */
+let paletteIdx = Math.floor(Math.random() * PALETTES.length);
 let paused = false;
 let cells = [], subjCells = [], backCells = [];
 let glitch = { until:0, rows:[], shift:0 };
+let lastPageC = "";
 
 const hex2rgb = h => [1,3,5].map(i => parseInt(h.slice(i,i+2),16));
 const lerp = (a,b,t) => a+(b-a)*t;
@@ -307,13 +336,16 @@ function gradRGB(stops, t){
 const rgbStr = c => `rgb(${c[0]},${c[1]},${c[2]})`;
 const mixRGB = (a, b, t) => a.map((v,k)=>Math.round(lerp(v, b[k], t)));
 
-/* farby textu podľa palety */
+/* farby textu podľa palety; pozadie nastavíme hneď, aby pri načítaní
+   neprebliklo pozadie z CSS, kým sa vykreslí prvý frame portrétu */
 function applyTheme(){
-  const pg = PALETTES[paletteIdx].page;
+  const P = PALETTES[paletteIdx];
   const rs = document.documentElement.style;
-  rs.setProperty("--text", pg.text);
-  rs.setProperty("--link", pg.link);
-  rs.setProperty("--muted", pg.muted);
+  rs.setProperty("--text", P.page.text);
+  rs.setProperty("--link", P.page.link);
+  rs.setProperty("--muted", P.page.muted);
+  lastPageC = rgbStr(mixRGB(gradRGB(P.bg, 0), hex2rgb(P.paper), P.wash ?? 0.72));
+  rs.setProperty("--page", lastPageC);
 }
 
 /* rozmery boxu, ktorý má portrét vyplniť bez medzier */
@@ -467,7 +499,6 @@ function updateBgGlitches(t){
   }
 }
 
-let lastPageC = "";
 /* buckety znakov podľa farby sa recyklujú medzi frame-ami (menej GC) */
 const buckets = new Map();
 
