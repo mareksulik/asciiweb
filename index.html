@@ -4,202 +4,664 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Marek Šulik</title>
-  
-  <link href="https://fonts.googleapis.com/css2?family=Cascadia+Code:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+  <meta name="description" content="Marek Šulik — marketing, reklama, akademický výskum. Birne, newsletter Marš, FMK UCM." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cascadia+Code:wght@300;400;700&display=swap" rel="stylesheet">
 
   <style>
+    :root{
+      --page:#F0E4DC;      /* pozadie webu — najviac washed */
+      --text:#3A241C;
+      --link:#8C4A33;
+      --muted:#A08175;
+    }
+    *{ box-sizing:border-box; }
     html,body{
       margin:0;
-      background:#fff;
+      background:var(--page);
       font-family:"Cascadia Code",monospace;
       font-weight:300;
+      color:var(--text);
+      transition:background-color .5s ease, color .5s ease;
     }
-    pre#ascii{
-      white-space:pre;                    
-      line-height:1;
-      font-size:11px;
-      user-select:none;
-      margin:32px;
-      max-width:700px;
-      overflow: hidden;
-      
-      /* Moderné rendering optimalizácie */
-      contain: layout style paint;
-      content-visibility: auto;
-      will-change: transform;
-      
-      /* Safari-špecifické optimalizácie */
-      -webkit-backface-visibility: hidden;
-      -webkit-perspective: 1000;
-      -webkit-transform: translate3d(0,0,0);
-      transform: translate3d(0,0,0);
-      
-      /* Font optimalizácie */
-      font-feature-settings: "liga" 0;
-      text-rendering: geometricPrecision;
-      -webkit-font-smoothing: antialiased;
-      font-variant-ligatures: none;
-    }
-    
-    
-    /* Optimalizácia pre Safari */
-    @media not all and (min-resolution:.001dpcm) {
-      @supports (-webkit-appearance:none) {
-        pre#ascii {
-          -webkit-font-smoothing: antialiased;
-          text-rendering: geometricPrecision;
-        }
-      }
-    }
+    a{ color:var(--link); transition:color .5s ease; }
+    a:hover{ opacity:.75; }
 
-    #original-photo {
-      display: none;
-      margin: 32px;
-      width: 657px;
-      height: auto;
-      object-fit: fill;
-    }
-
-    #controls{
+    #topbar{
       position:fixed;
-      top:16px; left:16px;
-      font-size:14px;
-      display: flex;
-      gap: 10px;
+      top:16px; right:16px;
       z-index:100;
+      display:flex; gap:6px;
+      font-size:13px;
     }
-    #controls select{
-      padding:4px 8px;
+    #topbar button{
       font-family:"Cascadia Code",monospace;
       font-weight:300;
-      font-size:14px;
+      font-size:13px;
+      padding:3px 9px;
+      background:transparent;
+      color:var(--text);
+      border:1px solid var(--muted);
+      cursor:pointer;
+      transition:background-color .3s ease, color .3s ease, border-color .3s ease;
     }
-    .bio {
-      font-family:"Cascadia Code",monospace;
-      font-weight:300;
-      margin:32px;
-      line-height:1.5;
-      max-width:700px;
-      width:calc(100% - 64px);
+    #topbar button.active{
+      background:var(--text);
+      color:var(--page);
+      border-color:var(--text);
     }
-    .bio .title {
+    #palette-btn{
+      margin-left:8px;
+      font-size:15px;
+      line-height:1;
+      padding:3px 8px;
+    }
+    #palette-btn:hover{ background:var(--text); color:var(--page); }
+
+    /* ===== layout: vľavo portrét (sticky, na doraz), vpravo text (scrolluje) ===== */
+    .wrap{
+      display:flex;
+      align-items:flex-start;
+      gap:0;
+    }
+    .col-portrait{
+      position:sticky;
+      top:0;
+      flex:0 0 52%;
+      max-width:52%;
+      align-self:flex-start;
+      line-height:0;              /* žiadna medzera pod canvasom */
+    }
+    #portrait{
+      display:block;
+      width:100%;
+      height:100vh;               /* výšku dopočíta JS, mriežka sa jej prispôsobí */
+      cursor:pointer;
+    }
+    .col-text{
+      flex:1 1 auto;
+      min-width:0;
+      max-width:660px;
+      line-height:1.55;
+      padding:48px 40px 64px;
+    }
+
+    .col-text .title{
       font-size:34px;
-      margin-top:32px;
-      margin-bottom:0px;
+      margin:0 0 4px;
     }
-    .bio h1 {
-      font-size:18px;
-      margin-top:32px;
-      margin-bottom:16px;
+    .col-text h1{
+      font-size:17px;
+      margin:36px 0 14px;
     }
-    .bio p:first-of-type {
-      margin-top: 0px;
-      margin-bottom: 15px;
-    }
-    .bio .arrow-list {
-      line-height: 1.8;
-      margin: 16px 0;
-    }
-    
-    @media (max-width: 768px) {
-      pre#ascii {
-        font-size: 7px; 
-        margin: 10px;
-        max-width: 100%;
-        overflow: hidden;
-      }
+    .col-text p:first-of-type{ margin-top:0; }
+    .arrow-list{ line-height:1.85; margin:16px 0; }
+    .deco{ color:var(--muted); transition:color .5s ease; }
+    ol{ padding-left:22px; }
+    ol li{ margin-bottom:10px; }
 
-      #original-photo {
-        margin: 16px;
-        width: auto;
-        max-width: calc(100% - 32px);
+    @media (max-width: 900px){
+      .wrap{
+        flex-direction:column;
+        gap:0;
       }
-
-      .bio {
-        margin: 16px;
-        width: calc(100% - 32px);
-        max-width: 100%;
-        overflow-wrap: break-word;
-        -webkit-hyphens: auto;
-        -ms-hyphens: auto;
-        hyphens: auto;
+      .col-portrait{
+        position:static;
+        flex:none;
+        max-width:100%;
+        width:100%;
       }
-      .bio .title {
-        font-size: 34px; 
-        word-break: break-all; 
-        margin-top: 16px; 
-      }
-      .bio h1 {
-        font-size: 16px;
-        word-break: break-word;
-      }
-      #controls {
-        top: 8px;
-        left: 8px;
-        flex-wrap: wrap; 
-      }
-      body {
-        overflow-x: hidden;
-        max-width: 100vw; 
-      }
-      ol, ul {
-        padding-left: 25px; 
-        margin-right: 0;
-      }
+      #portrait{ height:62vh; }
+      .col-text{ max-width:100%; padding:24px 16px 48px; }
+      .col-text .title{ font-size:30px; word-break:break-word; }
+      .col-text h1{ font-size:16px; }
+      #topbar{ top:8px; right:8px; }
+      body{ overflow-x:hidden; }
     }
   </style>
-
-  <script type="module" src="./app.js"></script>
-  <link rel="modulepreload" href="./frames.js">
-  <link rel="modulepreload" href="./frames_unicode.js">
 </head>
 <body>
-  <div id="controls">
-    <select id="style">
-      <option value="ascii">ASCII</option>
-      <option value="unicode">Unicode</option>
-      <option value="original">Original</option>
-    </select>
-    <select id="palette"></select>
+  <div id="topbar">
+    <button id="lang-sk" class="active">SK</button>
+    <button id="lang-en">EN</button>
+    <button id="palette-btn" title="zmeniť farbu" aria-label="zmeniť farbu">↻</button>
   </div>
-  <pre id="ascii"></pre>
-  <canvas id="ascii-canvas" style="display:none;"></canvas>
-  <img id="original-photo" src="marek-sulik.jpeg" style="display:none; height:auto; object-fit:fill;">
-  
-  <div class="bio">
-    <h1 class="title">Marek Šulik</h1>
-    <p>░░░░▒▒▒▒▓▓▓▓░░░░▒▒▒▒▓▓▓▓</p>
-    <p>Marketingu a reklame sa venujem už sedemnásty rok – od roku 2009. Verím v marketing založený na vedeckom poznaní, potrebách zákazníkov, relevantných dátach a dlhoročnom know-how, nie na dojmoch. Komplikované veci sa snažím vysvetľovať jednoducho – ak to nedokážem, pravdepodobne tomu dostatočne dobre nerozumiem. Aj po rokoch praxe si uvedomujem svoje limity a stále sa mám čo učiť.</p>    
-    <h1>Čo momentálne robím?</h1>
-    <ol>
-      <li>Som spolumajiteľom marketingového štúdia <a href="https://birne.sk">Birne</a>. Pomáham značkám identifikovať ich problémy a konzultujem s nimi ich marketingové aktivity a plány.</li>
-      <li>Deviaty rok pôsobím ako Head of Digital vo firme <a href="https://isadore.com">Isadore</a>. V roku 2021 sme s interným tímom získali zlatú Euro Effie za <a href="https://www.youtube.com/watch?v=hfEKK2V7DlE">kampaň "Cycling Struggles".</a></li>
-      <li>Už piaty rok publikujem newsletter <a href="https://mars.mareksulik.sk">Marš</a> o reklame, marketingu a biznise. Odoberajú ho tisícky čitateľov a vychádza aj <a href="https://e.dennikn.sk/tema/mars-newsletter">v Denníku N</a>.</li>
-      <li>Som externý lektor a doktorant na Fakulte mesmediálne komunikácie Univerzity sv. Cyrila a Metoda v Trnave.</li>
-    </ol>
-    
-    <h1>Akým oblastiam sa venujem?</h1>
-    <p class="arrow-list">
-      ~> Marketingovej diagnostike a stratégii primárne v online prostredí<br>
-      ~> Ecommerce a exportnému marketingu<br>
-      ~> Analytike a business intelligence<br>
-      ~> Marketingovým konzultáciám a školeniam<br>
-    </p>
 
-    <h1>Čomu som sa venoval v minulosti?</h1>
-    <ol>
-      <li>Osem rokov som strávil v agentúre Visibility na rôznych pozíciách, napr. ako Strategy Director.</li>
-      <li>Ako konzultant som spolupracoval s desiatkami rôznych firiem, napr. Darwin & the Machines, Pelikán, Websupport, Dedoles alebo Slovenská národná galéria.</li>
-      <li>Mám za sebou viac ako 100 školení a workshopov, 3 roky som pôsobil ako Google Partners Certified Trainer a 4 roky ako lektor v bratislavskom Impact HUBe.</li>
-      <li>Autorsky som prispel do viacerých kníh a publikácií, napr. <a href="https://www.martinus.sk/707861-uspejte-v-online/kniha">Uspejte v online.</a></li>
-    </ol>
+  <div class="wrap">
+    <div class="col-portrait">
+      <canvas id="portrait" title="klik = zmena palety"></canvas>
+    </div>
 
-    <h1>Chceš so mnou spolupracovať?</h1>
-    <p>V súčasnosti sa primárne venujem vyššie spomenutým projektom. V rámci možností si občas nájdem čas aj na iné krátkodobé konzultácie alebo školenia. Napíš mi na <a href="mailto:ahoj@mareksulik.sk">môj email</a>.</p>
-    
-    <h1>Kde ma ešte nájdeš?</h1>
-    <p>Aktívny som na na <a href="https://bsky.app/profile/mareksulik.sk">Bluesky</a>, <a href="https://twitter.com/shulo">X</a>, <a href="https://www.linkedin.com/in/sulik/">LinkedIne</a>, <a href="https://www.instagram.com/mareksulik/">Instagrame</a> alebo <a href="https://www.strava.com/athletes/3492382">Strave</a>.</p>
-    <p>->> <a href="https://finstat.sk/50464892/obchodny_register">Fakturačné údaje</a></p>
+    <div class="col-text">
+      <!-- ===================== SK ===================== -->
+      <div id="bio-sk">
+        <h1 class="title">Marek Šulik</h1>
+        <p class="deco">░░░░▒▒▒▒▓▓▓▓░░░░▒▒▒▒▓▓▓▓</p>
+        <p>Marketingu a reklame sa venujem už sedemnásty rok – od roku 2009. Verím v marketing založený na vedeckom poznaní, potrebách zákazníkov, relevantných dátach a dlhoročnom know-how, nie na dojmoch. Komplikované veci sa snažím vysvetľovať jednoducho. Ak to nedokážem, pravdepodobne tomu dostatočne dobre nerozumiem. Aj po rokoch praxe si uvedomujem svoje limity a stále sa mám čo učiť.</p>
+
+        <h1>Čo momentálne robím?</h1>
+        <ol>
+          <li>Som spolumajiteľom marketingového štúdia <a href="https://birne.sk">Birne</a>. Pomáham značkám identifikovať ich problémy a konzultujem s nimi ich marketingové aktivity a plány.</li>
+          <li>Už piaty rok publikujem newsletter <a href="https://mars.mareksulik.sk">Marš</a> o reklame, marketingu a biznise. Odoberajú ho tisícky čitateľov a vychádza aj <a href="https://e.dennikn.sk/tema/mars-newsletter">v Denníku N</a>.</li>
+          <li>Som doktorand na Fakulte masmediálnej komunikácie Univerzity sv. Cyrila a Metoda v Trnave, kde zároveň pôsobím ako externý lektor a vediem predmet o marketingu a reklame. Moju publikačnú činnosť nájdeš na <a href="https://orcid.org/0009-0009-6677-6497">ORCID</a>.</li>
+        </ol>
+
+        <h1>Akým oblastiam sa venujem?</h1>
+        <p class="arrow-list">
+          ~&gt; Marketingovej diagnostike a stratégii primárne v online prostredí<br>
+          ~&gt; Ecommerce a exportnému marketingu<br>
+          ~&gt; Využitiu AI v marketingu<br>
+          ~&gt; Analytike a business intelligence<br>
+          ~&gt; Marketingovým konzultáciám a školeniam<br>
+        </p>
+
+        <h1>Čomu som sa venoval v minulosti?</h1>
+        <ol>
+          <li>Deväť rokov som pôsobil ako Head of Digital vo firme <a href="https://isadore.com">Isadore</a>. V roku 2021 sme s interným tímom získali zlatú Euro Effie za <a href="https://www.youtube.com/watch?v=hfEKK2V7DlE">kampaň „Cycling Struggles"</a>.</li>
+          <li>Osem rokov som strávil v agentúre Visibility na rôznych pozíciách, napr. ako Strategy Director.</li>
+          <li>Ako konzultant som spolupracoval s desiatkami rôznych firiem, napr. Darwin &amp; the Machines, Pelikán, Websupport, Dedoles alebo Slovenská národná galéria.</li>
+          <li>Mám za sebou viac ako 150 školení a workshopov, 3 roky som pôsobil ako Google Partners Certified Trainer a 4 roky ako lektor v bratislavskom Impact HUBe.</li>
+          <li>Autorsky som prispel do viacerých kníh a publikácií, napr. <a href="https://www.martinus.sk/707861-uspejte-v-online/kniha">Uspejte v online</a>.</li>
+        </ol>
+
+        <h1>Chceš so mnou spolupracovať?</h1>
+        <p>V súčasnosti sa primárne venujem vyššie spomenutým projektom. V rámci možností si občas nájdem čas aj na iné krátkodobé konzultácie alebo školenia. Napíš mi na <a href="mailto:ahoj@mareksulik.sk">môj email</a>.</p>
+
+        <h1>Kde ma ešte nájdeš?</h1>
+        <p>Aktívny som na <a href="https://twitter.com/shulo">X</a>, <a href="https://www.linkedin.com/in/sulik/">LinkedIne</a>, <a href="https://www.instagram.com/mareksulik/">Instagrame</a> alebo <a href="https://www.strava.com/athletes/3492382">Strave</a>.</p>
+        <p>-&gt;&gt; <a href="https://finstat.sk/50464892/obchodny_register">Fakturačné údaje</a></p>
+      </div>
+
+      <!-- ===================== EN ===================== -->
+      <div id="bio-en" hidden>
+        <h1 class="title">Marek Šulik</h1>
+        <p class="deco">░░░░▒▒▒▒▓▓▓▓░░░░▒▒▒▒▓▓▓▓</p>
+        <p>I have been working in marketing and advertising since 2009 – my seventeenth year now. I believe in marketing grounded in scientific knowledge, customer needs, relevant data and long-term know-how, not in impressions. I try to explain complicated things simply. If I can't, I probably don't understand them well enough. Even after years of practice, I am aware of my limits and still have plenty to learn.</p>
+
+        <h1>What I'm working on</h1>
+        <ol>
+          <li>I'm a co-owner of <a href="https://birne.sk">Birne</a>, a marketing studio. I help brands identify their problems and consult on their marketing activities and plans.</li>
+          <li>For the fifth year, I publish <a href="https://mars.mareksulik.sk">Marš</a>, a newsletter about advertising, marketing and business. It is read by thousands of subscribers and also published <a href="https://e.dennikn.sk/tema/mars-newsletter">by Denník N</a>.</li>
+          <li>I'm a doctoral researcher at the Faculty of Mass Media Communication, University of Ss. Cyril and Methodius in Trnava, where I also teach a course on marketing and advertising as an external lecturer. My publication record is on <a href="https://orcid.org/0009-0009-6677-6497">ORCID</a>.</li>
+        </ol>
+
+        <h1>What I focus on</h1>
+        <p class="arrow-list">
+          ~&gt; Marketing diagnostics and strategy, primarily in the online space<br>
+          ~&gt; Ecommerce and export marketing<br>
+          ~&gt; Applying AI in marketing<br>
+          ~&gt; Analytics and business intelligence<br>
+          ~&gt; Marketing consulting and training<br>
+        </p>
+
+        <h1>What I did in the past</h1>
+        <ol>
+          <li>For nine years I worked as Head of Digital at <a href="https://isadore.com">Isadore</a>. In 2021, our in-house team won a gold Euro Effie for the <a href="https://www.youtube.com/watch?v=hfEKK2V7DlE">"Cycling Struggles" campaign</a>.</li>
+          <li>I spent eight years at the Visibility agency in various roles, e.g. as Strategy Director.</li>
+          <li>As a consultant, I worked with dozens of companies, e.g. Darwin &amp; the Machines, Pelikán, Websupport, Dedoles or the Slovak National Gallery.</li>
+          <li>I have delivered more than 150 trainings and workshops, spent 3 years as a Google Partners Certified Trainer and 4 years as a lecturer at Impact HUB Bratislava.</li>
+          <li>I have contributed as an author to several books and publications, e.g. <a href="https://www.martinus.sk/707861-uspejte-v-online/kniha">Uspejte v online</a>.</li>
+        </ol>
+
+        <h1>Want to work together?</h1>
+        <p>These days I primarily focus on the projects above. Occasionally I find time for short-term consulting or training. Drop me <a href="mailto:ahoj@mareksulik.sk">an email</a>.</p>
+
+        <h1>Where else to find me</h1>
+        <p>I'm active on <a href="https://twitter.com/shulo">X</a>, <a href="https://www.linkedin.com/in/sulik/">LinkedIn</a>, <a href="https://www.instagram.com/mareksulik/">Instagram</a> or <a href="https://www.strava.com/athletes/3492382">Strava</a>.</p>
+        <p>-&gt;&gt; <a href="https://finstat.sk/50464892/obchodny_register">Billing details</a></p>
+      </div>
+    </div>
   </div>
+
+<script>
+/* ============================================================
+   ASCII portrét — fotka + maska osoby (embednuté ako data URI).
+   Postava a pozadie sa animujú nezávisle; klik prepína paletu
+   a prefarbí celý web cez CSS premenné.
+   ============================================================ */
+const PHOTO_SRC = "data:image/webp;base64,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";
+const MASK_SRC  = "data:image/webp;base64,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";
+
+const FONT = 6;
+const CELL_W = FONT * 0.6;
+const CELL_H = FONT;
+const FPS = 14;
+
+/* mriežka sa počíta z rozmerov stĺpca — mení sa pri resize */
+let COLS = 260, ROWS = 160;
+
+/* obdĺžnik tváre v pôvodnej fotke (Vision, normalizované) + okraj na vlasy a bradu */
+const FACE_SRC = (() => {
+  const r = {x:0.3341, y:0.1985, w:0.2548, h:0.2428};
+  const mx = r.w * 0.30, my = r.h * 0.35;
+  return { x:r.x-mx, y:r.y-my, w:r.w+2*mx, h:r.h+2*my };
+})();
+/* prepočítaný do súradníc mriežky po cover-oreze */
+let FACE_GRID = { x0:0, y0:0, x1:0, y1:0 };
+
+/* Palety sú tlmené (washed). `paper` je smer, ktorým sa pozadie WEBU
+   ešte viac vypláchne oproti pozadiu obrázka — web je vždy bledší. */
+const PALETTES = [
+  { name:"Coral",
+    bg:["#D97F6B","#E08C74","#D17264","#D97F6B"],
+    subj:["#241109","#381D12","#4E2C1D","#66412B","#7E573C"],
+    back:["#B96A57","#A85F4E"],
+    flash:"#F5D9C8",
+    paper:"#F6EDE6",
+    page:{ text:"#3A241C", link:"#8C4A33", muted:"#A08175" },
+    invert:false },
+  { name:"Moss",
+    bg:["#26302A","#2C382F","#222C26","#26302A"],
+    subj:["#E6EEE2","#C6D5C0","#A4B69D","#83957D","#667663"],
+    back:["#3E4C41","#354238"],
+    flash:"#DCEAD6",
+    paper:"#EDF1EA", wash:0.93,
+    page:{ text:"#2A322B", link:"#4F6B52", muted:"#818C7F" },
+    invert:true },
+  { name:"Ivory",
+    bg:["#E4DACA","#EAE1D3","#DED3C1","#E4DACA"],
+    subj:["#2E2820","#453D31","#5C5344","#736957","#8A7F6A"],
+    back:["#BFB49F","#CBC1AF"],
+    flash:"#8A6A52",
+    paper:"#F7F3EB",
+    page:{ text:"#4A4238", link:"#8A6A52", muted:"#9C9282" },
+    invert:false },
+  { name:"Slate",
+    bg:["#4A5266","#525A6E","#434B5E","#4A5266"],
+    subj:["#EFF2F7","#D2D9E3","#B0BAC8","#8E99AA","#727D8F"],
+    back:["#5F6878","#555E6D"],
+    flash:"#DAE2EC",
+    paper:"#EFF0F2", wash:0.93,
+    page:{ text:"#2B2F36", link:"#4C5A72", muted:"#7E848F" },
+    invert:true },
+];
+
+const SUBJ_LEVELS = [
+  "@@MM", "WWBB", "NN88", "QQ00", "DDKR", "GGHE", "UUZP", "wwmy",
+  "kkhb", "xxuv", "oocs", "jjtr", "==+~", "::i!", ",,''", "  . "
+];
+const BACK_LEVELS = [
+  "#$&@", "%08X", "?*+=", "/|;\\", ":~-,", "..'`", "    ", "    "
+];
+
+const canvas = document.getElementById("portrait");
+const ctx = canvas.getContext("2d");
+let paletteIdx = 0;
+let paused = false;
+let cells = [], subjCells = [], backCells = [];
+let glitch = { until:0, rows:[], shift:0 };
+
+const hex2rgb = h => [1,3,5].map(i => parseInt(h.slice(i,i+2),16));
+const lerp = (a,b,t) => a+(b-a)*t;
+const mulberry = s => { let t = s += 0x6D2B79F5; t = Math.imul(t ^ t>>>15, t|1); t ^= t + Math.imul(t ^ t>>>7, t|61); return ((t ^ t>>>14)>>>0)/4294967296; };
+
+function gradRGB(stops, t){
+  const seg = stops.length - 1;
+  const s = (t % 1) * seg;
+  const i = Math.floor(s), f = s - i;
+  const a = hex2rgb(stops[i]), b = hex2rgb(stops[(i+1)%stops.length]);
+  return a.map((v,k)=>Math.round(lerp(v,b[k],f)));
+}
+const rgbStr = c => `rgb(${c[0]},${c[1]},${c[2]})`;
+const mixRGB = (a, b, t) => a.map((v,k)=>Math.round(lerp(v, b[k], t)));
+
+/* farby textu podľa palety */
+function applyTheme(){
+  const pg = PALETTES[paletteIdx].page;
+  const rs = document.documentElement.style;
+  rs.setProperty("--text", pg.text);
+  rs.setProperty("--link", pg.link);
+  rs.setProperty("--muted", pg.muted);
+}
+
+/* rozmery boxu, ktorý má portrét vyplniť bez medzier */
+function portraitBox(){
+  const col = document.querySelector(".col-portrait");
+  const stacked = window.innerWidth <= 900;
+  const w = col.clientWidth || window.innerWidth;
+  const h = stacked ? Math.round(window.innerHeight * 0.62) : window.innerHeight;
+  return { w, h };
+}
+
+function buildGrid(photo, mask){
+  const box = portraitBox();
+  COLS = Math.max(60, Math.round(box.w / CELL_W));
+  ROWS = Math.max(40, Math.round(box.h / CELL_H));
+
+  /* cover: fotka sa zväčší tak, aby box vyplnila celý, prebytok sa oreže.
+     Počíta sa v pixeloch (bunka nie je štvorec: CELL_W × CELL_H), inak by
+     bola postava skreslená. Zvislo držíme hornú časť, nech sa hlava neoreže. */
+  const boxW = COLS * CELL_W, boxH = ROWS * CELL_H;
+  const s = Math.max(boxW / photo.width, boxH / photo.height);
+  const dwPx = photo.width * s, dhPx = photo.height * s;
+  const dxPx = (boxW - dwPx) * 0.5;
+  const dyPx = (boxH - dhPx) * 0.2;
+  /* späť do súradníc mriežky */
+  const dx = dxPx / CELL_W, dw = dwPx / CELL_W;
+  const dy = dyPx / CELL_H, dh = dhPx / CELL_H;
+
+  const off = document.createElement("canvas");
+  off.width = COLS; off.height = ROWS;
+  const octx = off.getContext("2d", { willReadFrequently:true });
+
+  octx.drawImage(photo, dx, dy, dw, dh);
+  const pd = octx.getImageData(0, 0, COLS, ROWS).data;
+  octx.clearRect(0, 0, COLS, ROWS);
+  octx.drawImage(mask, dx, dy, dw, dh);
+  const md = octx.getImageData(0, 0, COLS, ROWS).data;
+
+  /* tvár prepočítaná do mriežky rovnakou transformáciou */
+  FACE_GRID = {
+    x0: dx + FACE_SRC.x * dw,
+    y0: dy + FACE_SRC.y * dh,
+    x1: dx + (FACE_SRC.x + FACE_SRC.w) * dw,
+    y1: dy + (FACE_SRC.y + FACE_SRC.h) * dh
+  };
+
+  const lums = new Float32Array(COLS * ROWS);
+  const subjFlags = new Uint8Array(COLS * ROWS);
+  for (let i = 0; i < COLS * ROWS; i++){
+    const p = i * 4;
+    lums[i] = 0.2126*pd[p] + 0.7152*pd[p+1] + 0.0722*pd[p+2];
+    subjFlags[i] = md[p] > 128 ? 1 : 0;
+  }
+
+  /* unsharp mask — lokálny kontrast (oči, brada, vlasy) */
+  const blur = new Float32Array(COLS * ROWS);
+  const R = 2;
+  for (let y = 0; y < ROWS; y++){
+    for (let x = 0; x < COLS; x++){
+      let sum = 0, n = 0;
+      for (let dy = -R; dy <= R; dy++){
+        const yy = y + dy;
+        if (yy < 0 || yy >= ROWS) continue;
+        for (let dx = -R; dx <= R; dx++){
+          const xx = x + dx;
+          if (xx < 0 || xx >= COLS) continue;
+          sum += lums[yy*COLS + xx]; n++;
+        }
+      }
+      blur[y*COLS + x] = sum / n;
+    }
+  }
+  for (let i = 0; i < lums.length; i++){
+    lums[i] = Math.min(255, Math.max(0, lums[i] + (lums[i] - blur[i]) * 1.15));
+  }
+
+  const backSorted = [];
+  for (let i = 0; i < lums.length; i++) if (!subjFlags[i]) backSorted.push(lums[i]);
+  backSorted.sort((a,b)=>a-b);
+  const bLo = backSorted[Math.floor(backSorted.length*0.03)] || 0;
+  const bHi = backSorted[Math.floor(backSorted.length*0.97)] || 255;
+
+  /* ekvalizácia histogramu pre postavu; tvár má vlastnú, agresívnejšiu */
+  const inFace = (x, y) =>
+    x >= FACE_GRID.x0 && x <= FACE_GRID.x1 && y >= FACE_GRID.y0 && y <= FACE_GRID.y1;
+  const histS = new Float32Array(256), histF = new Float32Array(256);
+  let nS = 0, nF = 0;
+  for (let y = 0; y < ROWS; y++){
+    for (let x = 0; x < COLS; x++){
+      const i = y*COLS + x;
+      if (!subjFlags[i]) continue;
+      const b = Math.min(255, Math.round(lums[i]));
+      histS[b]++; nS++;
+      if (inFace(x, y)){ histF[b]++; nF++; }
+    }
+  }
+  const cdfS = new Float32Array(256), cdfF = new Float32Array(256);
+  let aS = 0, aF = 0;
+  for (let b = 0; b < 256; b++){
+    aS += histS[b]; cdfS[b] = aS / Math.max(1, nS);
+    aF += histF[b]; cdfF[b] = aF / Math.max(1, nF);
+  }
+
+  cells = [];
+  for (let y = 0; y < ROWS; y++){
+    for (let x = 0; x < COLS; x++){
+      const i = y*COLS + x;
+      const face = subjFlags[i] && inFace(x, y);
+      let v;
+      if (face){
+        const b = Math.min(255, Math.round(lums[i]));
+        v = 0.75*cdfF[b] + 0.25*(lums[i] / 255);
+      } else if (subjFlags[i]){
+        const b = Math.min(255, Math.round(lums[i]));
+        v = 0.55*cdfS[b] + 0.45*(lums[i] / 255);
+      } else {
+        v = (lums[i] - bLo) / Math.max(1, bHi - bLo);
+      }
+      v = Math.min(1, Math.max(0, v));
+      cells.push({ x, y, subj: !!subjFlags[i], face, lum: v, jit: Math.floor(mulberry(i*7 + 13) * 1e6) });
+    }
+  }
+  subjCells = cells.filter(c => c.subj);
+  backCells = cells.filter(c => !c.subj);
+
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  canvas.width  = COLS * CELL_W * dpr;
+  canvas.height = ROWS * CELL_H * dpr;
+  canvas.style.height = box.h + "px";
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.textBaseline = "top";
+  ctx.font = `400 ${FONT}px "Cascadia Code", monospace`;
+}
+
+const colSpeed = x => 2.5 + mulberry(x*31) * 8;
+
+/* glitch pásy na pozadí */
+let bgGlitches = [];
+function updateBgGlitches(t){
+  bgGlitches = bgGlitches.filter(g => t < g.until);
+  if (bgGlitches.length < 4 && Math.random() < 0.10){
+    const types = ["shift","flash","noise"];
+    const y0 = Math.floor(Math.random() * ROWS);
+    bgGlitches.push({
+      type: types[Math.floor(Math.random() * types.length)],
+      y0, y1: y0 + 2 + Math.floor(Math.random() * 7),
+      until: t + 0.12 + Math.random() * 0.5,
+      shift: (Math.random() < 0.5 ? -1 : 1) * (3 + Math.floor(Math.random() * 9)),
+      seed: Math.floor(Math.random() * 1e6)
+    });
+  }
+}
+
+let lastPageC = "";
+/* buckety znakov podľa farby sa recyklujú medzi frame-ami (menej GC) */
+const buckets = new Map();
+
+function render(t){
+  const P = PALETTES[paletteIdx];
+
+  const bgC = gradRGB(P.bg, t / 18);
+  ctx.fillStyle = rgbStr(bgC);
+  ctx.fillRect(0, 0, COLS*CELL_W, ROWS*CELL_H);
+
+  /* pozadie webu = pozadie obrázka vypláchnuté smerom k `paper`;
+     tmavé palety potrebujú vyšší stupeň vyplavenia, nech je papier rovnako bledý */
+  const pageC = rgbStr(mixRGB(bgC, hex2rgb(P.paper), P.wash ?? 0.72));
+  if (pageC !== lastPageC){
+    document.documentElement.style.setProperty("--page", pageC);
+    lastPageC = pageC;
+  }
+
+  if (t > glitch.until && Math.random() < 0.012){
+    const r0 = Math.floor(Math.random() * ROWS);
+    glitch = { until: t + 0.35, rows: [r0, r0+1, r0+2], shift: (Math.random()<0.5?-1:1) * (2 + Math.floor(Math.random()*3)) };
+  }
+  const glitchOn = t < glitch.until;
+  updateBgGlitches(t);
+  const sweepY = Math.floor((t * 26) % (ROWS + 60)) - 30;
+
+  for (const arr of buckets.values()) arr.length = 0;
+  const push = (color, x, y, ch) => {
+    let b = buckets.get(color);
+    if (!b){ b = []; buckets.set(color, b); }
+    b.push(x, y, ch);
+  };
+
+  for (const c of cells){
+    const ink0 = P.invert ? c.lum : 1 - c.lum;
+
+    if (c.subj){
+      const wave = Math.sin(t*0.9 + c.x*0.045 + c.y*0.03) * (c.face ? 0.02 : 0.04);
+      const floor = c.face ? 0.28 : 0.40;
+      const ink = Math.min(1, Math.max(0, floor + (1 - floor) * (ink0 + wave)));
+      let li = Math.floor((1 - ink) * SUBJ_LEVELS.length);
+      li = Math.min(SUBJ_LEVELS.length-1, Math.max(0, li));
+      const set = SUBJ_LEVELS[li];
+      const ch = set[(c.jit >> 2) % set.length];
+      if (ch === " ") continue;
+      const shade = P.subj[Math.min(4, Math.floor((1 - ink0) * 5))];
+      let gx = c.x;
+      if (glitchOn && glitch.rows.includes(c.y)) gx += glitch.shift;
+      push(shade, gx, c.y, ch);
+    } else {
+      const drift = Math.floor(t * colSpeed(c.x));
+      const flow = mulberry(c.x*131 + ((c.y + drift) % ROWS)*17 + c.jit % 7);
+      const ink = 0.45 + 0.55 * ink0;
+      let li = Math.floor((1 - ink) * BACK_LEVELS.length + flow * 2.2);
+      li = Math.min(BACK_LEVELS.length-1, Math.max(0, li));
+      let set = BACK_LEVELS[li];
+      let ch = set[Math.floor(flow * 4) % set.length];
+      let shade = P.back[flow > 0.5 ? 0 : 1];
+      let gx = c.x;
+      let forced = false;
+
+      for (const g of bgGlitches){
+        if (c.y < g.y0 || c.y > g.y1) continue;
+        if (g.type === "shift"){
+          gx = (c.x + g.shift + COLS) % COLS;
+          forced = true;
+        } else if (g.type === "flash"){
+          shade = P.flash;
+          forced = true;
+        } else {
+          const nz = mulberry(c.x*7 + c.y*613 + g.seed + Math.floor(t*30));
+          set = BACK_LEVELS[nz < 0.5 ? 0 : 1];
+          ch = set[Math.floor(nz * 4) % set.length];
+          if (nz > 0.35){ shade = nz > 0.85 ? P.flash : P.back[0]; forced = true; }
+        }
+      }
+      if (Math.abs(c.y - sweepY) <= 1){
+        shade = P.flash; forced = true;
+      }
+
+      if (ch === " ") continue;
+      if (!forced && Math.sin(t*2.4 + c.y*0.25 + c.x*0.07 + flow*6) < -0.45) continue;
+      push(shade, gx, c.y, ch);
+    }
+  }
+
+  for (const [color, arr] of buckets){
+    if (!arr.length) continue;
+    ctx.fillStyle = color;
+    for (let i = 0; i < arr.length; i += 3){
+      ctx.fillText(arr[i+2], arr[i]*CELL_W, arr[i+1]*CELL_H);
+    }
+  }
+}
+
+function scramble(){
+  const nS = Math.floor(subjCells.length * 0.002);
+  for (let k = 0; k < nS; k++){
+    const c = subjCells[Math.floor(Math.random() * subjCells.length)];
+    c.jit = Math.floor(Math.random() * 1e6);
+  }
+  const nB = Math.floor(backCells.length * 0.035);
+  for (let k = 0; k < nB; k++){
+    const c = backCells[Math.floor(Math.random() * backCells.length)];
+    c.jit = Math.floor(Math.random() * 1e6);
+  }
+}
+
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* mimo obrazovky (mobil po odscrollovaní) sa nekreslí */
+let visible = true;
+if ("IntersectionObserver" in window){
+  new IntersectionObserver(entries => { visible = entries[0].isIntersecting; }).observe(canvas);
+}
+
+let last = 0;
+function loop(now){
+  if (!paused && visible && now - last >= 1000/FPS){
+    const t = now / 1000;
+    scramble();
+    render(t);
+    last = now;
+  }
+  requestAnimationFrame(loop);
+}
+
+function nextPalette(){
+  paletteIdx = (paletteIdx + 1) % PALETTES.length;
+  applyTheme();
+  if (reducedMotion || paused) render(performance.now() / 1000);
+}
+canvas.addEventListener("click", nextPalette);
+document.getElementById("palette-btn").addEventListener("click", nextPalette);
+document.addEventListener("keydown", e => {
+  if (e.key === "p") paused = !paused;
+});
+
+/* ===== jazyk ===== */
+const bioSk = document.getElementById("bio-sk");
+const bioEn = document.getElementById("bio-en");
+const btnSk = document.getElementById("lang-sk");
+const btnEn = document.getElementById("lang-en");
+function setLang(lang){
+  const en = lang === "en";
+  bioSk.hidden = en;
+  bioEn.hidden = !en;
+  btnSk.classList.toggle("active", !en);
+  btnEn.classList.toggle("active", en);
+  canvas.title = en ? "click = change palette" : "klik = zmena palety";
+  const pb = document.getElementById("palette-btn");
+  const pbLabel = en ? "change colour" : "zmeniť farbu";
+  pb.title = pbLabel;
+  pb.setAttribute("aria-label", pbLabel);
+  document.documentElement.lang = en ? "en" : "sk";
+  try { localStorage.setItem("lang", lang); } catch(e){}
+}
+btnSk.addEventListener("click", () => setLang("sk"));
+btnEn.addEventListener("click", () => setLang("en"));
+try {
+  const saved = localStorage.getItem("lang");
+  if (saved === "en") setLang("en");
+} catch(e){}
+
+/* ===== štart ===== */
+applyTheme();
+const photo = new Image();
+const mask = new Image();
+let loaded = 0;
+const ready = () => {
+  if (++loaded < 2) return;
+  const start = () => {
+    buildGrid(photo, mask);
+    if (reducedMotion){ render(0.001); return; }
+    requestAnimationFrame(loop);
+  };
+  if (document.fonts && document.fonts.load){
+    document.fonts.load(`400 ${FONT}px "Cascadia Code"`).then(start, start);
+  } else start();
+};
+photo.onload = ready; mask.onload = ready;
+photo.src = PHOTO_SRC;
+mask.src = MASK_SRC;
+
+/* pri zmene veľkosti okna prestav mriežku, nech portrét stále presne vyplní box */
+let resizeTimer;
+window.addEventListener("resize", () => {
+  if (loaded < 2) return;
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    buildGrid(photo, mask);
+    if (reducedMotion || paused) render(performance.now() / 1000);
+  }, 150);
+});
+</script>
 </body>
 </html>
